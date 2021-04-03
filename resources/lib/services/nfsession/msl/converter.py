@@ -194,6 +194,8 @@ def _determine_video_codec(content_profile):
         return 'hevc'
     if content_profile.startswith('vp9'):
         return 'vp9.0.' + content_profile[14:16]
+    if 'av1' in content_profile:
+        return 'av1'
     return 'h264'
 
 
