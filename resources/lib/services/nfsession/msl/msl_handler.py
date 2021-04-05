@@ -38,7 +38,7 @@ class MSLHandler:
     licenses_session_id = []
     licenses_xid = []
     licenses_release_url = []
-    manifest_challenge = ('CAESwQsKhgsIARLsCQqvAggCEhGN3Th6q2GhvXw9bD+X9aW2ChjQ8PLmBSKOAjCCAQoCggEBANsVUL5yI9K'
+    manifest_challenge_arm = ('CAESwQsKhgsIARLsCQqvAggCEhGN3Th6q2GhvXw9bD+X9aW2ChjQ8PLmBSKOAjCCAQoCggEBANsVUL5yI9K'
                           'UG1TPpb1A0bzk6df3YwbpDEkh+IOj52RfnKyspASRN1JQvCRrKwiq433M9BV+8ZkzkheYEPZ9X5rl5Ydkwp'
                           'qedzdZRAiuaVp/mMA5zUM3I3fZogVxGnVzh4mB2URg+g7TFwbPWz2x1uzPumO+2ImOPIUyR7auoOKrZml30'
                           '8w8Edwdd1HwFyrJEZHLDN2P51PJhVrUBWUlxebY05NhfIUvWQ/pyXAa6AahTf7PTVow/uu1d0vc6gHSxmj0'
@@ -211,8 +211,33 @@ class MSLHandler:
                 'supportedHdcpVersions': hdcp_version,
                 'isHdcpEngaged': hdcp_override
             }],
-            'preferAssistiveAudio': False
+            'preferAssistiveAudio': False,
+            'profileGroups': [{
+                'name': 'default',
+                'profiles': profiles
+            }],
+            'licenseType': 'standard'
         }
+
+        # TODO: with the 'licensedManifest' seem mandatory add DRM session data,
+        #   the existing 'challenge' param is also used but it have a different value? where does it come from?
+        # TODO: the handshake must be done before create this data or there is no key_request
+        if 'android' in common.get_system_platform():
+            drm_session_id = None  # TODO: How get the current session ID? this is missing in Kodi DRM interface
+            params['challenge'] = self.msl_requests.crypto.key_request
+            params['challenges'] = {
+                'default': [{
+                    'drmSessionId': drm_session_id or 'session',
+                    'clientTime': time.time(),
+                    'challengeBase64': self.msl_requests.crypto.key_request
+                }]
+            }
+        else:
+            # TODO: here how to do with the others platforms??
+            #   currently Kodi provide the DRM interface for android only,
+            #   the InputStreamAdaptive do not provide any DRM information and seem that the DRM session is constructed
+            #   only after the manifest callback, then there is no possible get DRM the session data before it??
+            pass
 
         if 'linux' in common.get_system_platform() and 'arm' in common.get_machine():
             # 24/06/2020 To get until to 1080P resolutions under arm devices (ChromeOS), android excluded,
@@ -222,11 +247,11 @@ class MSLHandler:
             #   under android OS.
             # As workaround: Initially we pass an hardcoded challenge data needed to play the first video,
             #   then when ISA perform the license callback we replace it with the fresh license challenge data.
-            params['challenge'] = self.manifest_challenge
+            params['challenge'] = self.manifest_challenge_arm
 
-        endpoint_url = ENDPOINTS['manifest'] + create_req_params(0, 'prefetch/manifest')
+        endpoint_url = ENDPOINTS['manifest'] + create_req_params(0, 'licensedManifest')
         manifest = self.msl_requests.chunked_request(endpoint_url,
-                                                     self.msl_requests.build_request_data('/manifest', params),
+                                                     self.msl_requests.build_request_data('licensedManifest', params),
                                                      esn,
                                                      disable_msl_switch=False)
         if LOG.is_enabled:
@@ -257,7 +282,7 @@ class MSLHandler:
             'challengeBase64': challenge,
             'xid': xid
         }]
-        self.manifest_challenge = challenge
+        self.manifest_challenge_arm = challenge
         endpoint_url = ENDPOINTS['license'] + create_req_params(0, 'prefetch/license')
         try:
             response = self.msl_requests.chunked_request(endpoint_url,
