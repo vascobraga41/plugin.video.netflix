@@ -59,13 +59,19 @@ class SessionHTTPRequests(SessionBase):
                 LOG.debug('Executing {verb} request to {url}',
                           verb='GET' if method == self.session.get else 'POST', url=url)
                 start = time.perf_counter()
-                response = method(
-                    url=url,
-                    verify=self.verify_ssl,
-                    headers=headers,
-                    params=params,
-                    data=data,
-                    timeout=8)
+                if method == self.session.get:
+                    response = method(
+                        url=url,
+                        headers=headers,
+                        params=params,
+                        timeout=8)
+                else:
+                    response = method(
+                        url=url,
+                        headers=headers,
+                        params=params,
+                        data=data,
+                        timeout=8)
                 LOG.debug('Request took {}s', time.perf_counter() - start)
                 LOG.debug('Request returned status code {}', response.status_code)
                 break

@@ -46,8 +46,9 @@ class SessionCookie(SessionBase):
                 LOG.error('The cookie "{}" do not exist, it is not possible to check the expiration',
                           cookie_name)
                 return False
-            for cookie in list(self.session.cookies):
-                if cookie.name != cookie_name:
+            for cookie in self.session.cookies.items():
+                # TODO to check if 'cookie' name comparison works and also expires property
+                if cookie != cookie_name:
                     continue
                 if cookie.expires <= int(time.time()):
                     LOG.info('Login is expired')
