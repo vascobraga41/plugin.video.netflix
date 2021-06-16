@@ -104,7 +104,7 @@ class SessionHTTPRequests(SessionBase):
         """Refresh session data from the Netflix website"""
         try:
             self.auth_url = website.extract_session_data(self.get('browse'))['auth_url']
-            cookies.save(self.session.cookies)
+            cookies.save(self.session.cookies.jar)
             LOG.debug('Successfully refreshed session data')
             return True
         except MbrStatusError:
