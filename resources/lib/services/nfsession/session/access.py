@@ -96,11 +96,11 @@ class SessionAccess(SessionCookie, SessionHTTPRequests):
                 'path': cookie['path'],
                 'path_specified': bool(cookie['path']),
                 'secure': cookie['secure'],
-                'expires': cookie.get('expires'),
+                'expires': cookie['expires'],
                 'discard': True,
                 'comment': None,
                 'comment_url': None,
-                'rest': cookie.get('rest', {'HttpOnly': None}),
+                'rest': cookie['rest'],
                 'rfc2109': False,
             }
             cookie = Cookie(**kwargs)

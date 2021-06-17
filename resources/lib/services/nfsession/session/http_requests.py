@@ -32,14 +32,14 @@ class SessionHTTPRequests(SessionBase):
     def get(self, endpoint, **kwargs):
         """Execute a GET request to the designated endpoint."""
         return self._request_call(
-            method=self.session.get,
+            method='GET',
             endpoint=endpoint,
             **kwargs)
 
     def post(self, endpoint, **kwargs):
         """Execute a POST request to the designated endpoint."""
         return self._request_call(
-            method=self.session.post,
+            method='POST',
             endpoint=endpoint,
             **kwargs)
 
@@ -56,17 +56,16 @@ class SessionHTTPRequests(SessionBase):
         retry = 1
         while True:
             try:
-                LOG.debug('Executing {verb} request to {url}',
-                          verb='GET' if method == self.session.get else 'POST', url=url)
+                LOG.debug('Executing {verb} request to {url}', verb=method, url=url)
                 start = time.perf_counter()
-                if method == self.session.get:
-                    response = method(
+                if method == 'GET':
+                    response = self.session.get(
                         url=url,
                         headers=headers,
                         params=params,
                         timeout=8)
                 else:
-                    response = method(
+                    response = self.session.post(
                         url=url,
                         headers=headers,
                         params=params,
